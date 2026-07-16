@@ -1,125 +1,40 @@
-import cv2
+import pandas as pd
 import numpy as np
-from scipy.stats import entropy
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
-# -----------------------------
-# Mean
-# -----------------------------
-def get_mean(image):
-    return np.mean(image)
+# 1. Read both CSV files
+clean_df = pd.read_csv('original_features.csv')
+stego_df = pd.read_csv('stego_features.csv')
 
-# -----------------------------
-# Variance
-# -----------------------------
-def get_variance(image):
-    return np.var(image)
+# 2. Filter out non-numeric columns (like filenames) right away from both
+# (Assuming your features are numeric and any image name/path is a string)
+X_clean = clean_df.select_dtypes(include=['number'])
+X_stego = stego_df.select_dtypes(include=['number'])
 
-# -----------------------------
-# Entropy
-# -----------------------------
-def get_entropy(image):
-    histogram, _ = np.histogram(image, bins=256, range=(0, 256))
+# 3. Create explicit target labels for each dataset
+# 0 = Clean/Cover, 1 = Stego
+y_clean = np.zeros(X_clean.shape[0])
+y_stego = np.ones(X_stego.shape[0])
 
-    histogram = histogram / histogram.sum()
+# 4. Combine (Concatenate) the datasets vertically
+X_combined = pd.concat([X_clean, X_stego], axis=0, ignore_index=True)
+y_combined = np.concatenate([y_clean, y_stego])
 
-    histogram = histogram[histogram > 0]
+# 5. Normalize Features across the entire combined dataset
+scaler = StandardScaler()
+X_normalized = scaler.fit_transform(X_combined)
 
-    return entropy(histogram, base=2)
+# 6. Train/Test Split
+# We add `stratify=y_combined` to ensure an equal balance of clean/stego images in both splits
+X_train, X_test, y_train, y_test = train_test_split(
+    X_normalized, y_combined, test_size=0.2, random_state=42, stratify=y_combined
+)
 
-# -----------------------------
-# LSB Ratio
-# -----------------------------
-def get_lsb_ratio(image):
-    lsb = image & 1
-    ones = np.sum(lsb)
-    total = lsb.size
-    return ones / total
-
-# -----------------------------
-# Histogram Features
-# -----------------------------
-def get_histogram_features(image):
-
-    histogram = cv2.calcHist([image], [0], None, [256], [0,256])
-
-    histogram = histogram.flatten()
-
-    histogram = histogram / np.sum(histogram)
-
-    return histogram
-
-# -----------------------------
-# Pixel Difference
-# -----------------------------
-def get_pixel_difference(image):
-
-    horizontal = np.abs(np.diff(image, axis=1))
-
-    vertical = np.abs(np.diff(image, axis=0))
-
-    return np.mean(horizontal), np.mean(vertical)
-
-# -----------------------------
-# Complete Feature Extraction
-# -----------------------------
-def extract_features(image_path):
-
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-
-    if image is None:
-        raise Exception("Image not found.")
-
-    features = {}
-
-    features["Mean"] = get_mean(image)
-
-    features["Variance"] = get_variance(image)
-
-    features["Entropy"] = get_entropy(image)
-
-    features["LSB Ratio"] = get_lsb_ratio(image)
-
-    hdiff, vdiff = get_pixel_difference(image)
-
-    features["Horizontal Difference"] = hdiff
-
-    features["Vertical Difference"] = vdiff
-
-    histogram = get_histogram_features(image)
-
-    return features, histogram
-
-
-# -----------------------------
-# Example
-# -----------------------------
-if __name__ == "__main__":
-
-    image_path = "1.pgm"
-    features, histogram = extract_features(image_path)
-
-    print("Image Features\n")
-    for key, value in features.items():
-        print(f"{key:25}: {value:.4f}")
-
-    # Prepare your single feature vector: shape (1, 6)
-    feature_vector = np.array(list(features.values()), dtype=float).reshape(1, -1)
-
-    # DUMMY DATASOURCE: To make MinMaxScaler work, we simulate a "mock" 
-    # historical dataset showing the minimum and maximum possible values for your 6 features.
-    # Structure: [Mean, Variance, Entropy, LSB Ratio, H_Diff, V_Diff]
-    mock_min_features = [0,   0,   0, 0.0, 0,   0]
-    mock_max_features = [255, 16384, 8, 1.0, 255, 255] 
-    
-    mock_dataset = np.array([mock_min_features, mock_max_features])
-
-    # Initialize and fit the scaler on the expected ranges
-    scaler = MinMaxScaler()
-    scaler.fit(mock_dataset) 
-
-    # Transform your actual single image feature vector
-    normalized = scaler.transform(feature_vector)
-
-    print("\nNormalized Feature Vector (0 to 1 Range):")
-    print(normalized)
+# Verify the shapes of the splits
+print("Data pipeline completed successfully!")
+print(f"Total dataset size: {X_combined.shape[0]} images")
+print(f"X_train shape: {X_train.shape} | Features trained on.")
+print(f"y_train distribution: Clean={np.sum(y_train==0)}, Stego={np.sum(y_train==1)}")
+print(f"X_test shape:  {X_test.shape}  | Features held out for testing.")
+print(f"y_test distribution:  Clean={np.sum(y_test==0)}, Stego={np.sum(y_test==1)}")
