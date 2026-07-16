@@ -10,7 +10,6 @@ from scipy.stats import entropy
 
 COVER_FOLDER = "dataset/cover_png"
 STEGO_FOLDER = "dataset/stego"
-OUTPUT_FILE = "features.csv"
 
 # =====================================================
 # Mean
@@ -56,7 +55,7 @@ def get_lsb_ratio(image):
 
 # =====================================================
 # Histogram Features
-# (Not stored in CSV but kept for compatibility)
+# (Kept for compatibility with Member 2)
 # =====================================================
 
 def get_histogram_features(image):
@@ -95,17 +94,13 @@ def extract_features(image_path):
     features = {}
 
     features["Mean"] = get_mean(image)
-
     features["Variance"] = get_variance(image)
-
     features["Entropy"] = get_entropy(image)
-
     features["LSB Ratio"] = get_lsb_ratio(image)
 
     hdiff, vdiff = get_pixel_difference(image)
 
     features["Horizontal Difference"] = hdiff
-
     features["Vertical Difference"] = vdiff
 
     histogram = get_histogram_features(image)
@@ -117,6 +112,8 @@ def extract_features(image_path):
 # =====================================================
 
 rows = []
+original_rows = []
+stego_rows = []
 
 print("\nProcessing Cover Images...\n")
 
@@ -141,6 +138,7 @@ for filename in sorted(os.listdir(COVER_FOLDER)):
     }
 
     rows.append(row)
+    original_rows.append(row)
 
     print(f"✔ Cover : {filename}")
 
@@ -167,32 +165,37 @@ for filename in sorted(os.listdir(STEGO_FOLDER)):
     }
 
     rows.append(row)
+    stego_rows.append(row)
 
     print(f"✔ Stego : {filename}")
 
 # =====================================================
-# Save CSV
+# Save CSV Files
 # =====================================================
 
-df = pd.DataFrame(rows)
-
-df = df[
-    [
-        "Image",
-        "Mean",
-        "Variance",
-        "Entropy",
-        "LSB Ratio",
-        "Horizontal Difference",
-        "Vertical Difference",
-        "Label"
-    ]
+columns = [
+    "Image",
+    "Mean",
+    "Variance",
+    "Entropy",
+    "LSB Ratio",
+    "Horizontal Difference",
+    "Vertical Difference",
+    "Label"
 ]
 
-df.to_csv(OUTPUT_FILE, index=False)
+combined_df = pd.DataFrame(rows)[columns]
+original_df = pd.DataFrame(original_rows)[columns]
+stego_df = pd.DataFrame(stego_rows)[columns]
+
+combined_df.to_csv("features.csv", index=False)
+original_df.to_csv("original_features.csv", index=False)
+stego_df.to_csv("stego_features.csv", index=False)
 
 print("\n======================================")
-print("Dataset Generated Successfully")
-print(f"Total Images : {len(df)}")
-print(f"CSV File : {OUTPUT_FILE}")
+print("Datasets Generated Successfully!")
+print("======================================")
+print(f"Combined Dataset : features.csv ({len(combined_df)} images)")
+print(f"Original Dataset : original_features.csv ({len(original_df)} images)")
+print(f"Stego Dataset    : stego_features.csv ({len(stego_df)} images)")
 print("======================================")
