@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Home | Quantum Steganography Detection{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">Quantum Machine Learning Pipeline</p>
+        <h1>Quantum-Assisted Steganography Detection</h1>
+        <p>Upload an image and route it through feature extraction and a Qiskit-powered quantum classifier to detect hidden payload patterns.</p>
+        <div class="actions">
+            <a class="button primary" href="{{ url_for('upload') }}">Upload Image</a>
+            <a class="button ghost" href="{{ url_for('about') }}">View Project</a>
+        </div>
+    </div>
+    <div class="signal-panel" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+</section>
+<section class="flow">
+    <div>
+        <strong>1. Upload</strong>
+        <p>Validate and store the selected image.</p>
+    </div>
+    <div>
+        <strong>2. Extract</strong>
+        <p>Call <code>extract_features(image_path)</code>.</p>
+    </div>
+    <div>
+        <strong>3. Predict</strong>
+        <p>Call <code>predict(features)</code>.</p>
+    </div>
+    <div>
+        <strong>4. Report</strong>
+        <p>Display confidence, status, and PDF output.</p>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Result | Quantum Steganography Detection{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="result-grid">
+        <div class="image-panel">
+            <img src="{{ result.image_url }}" alt="Uploaded image">
+        </div>
+        <div class="result-panel">
+            <span class="status-badge {{ 'danger' if result.prediction == 'Stego' else 'success' }}">{{ result.status }}</span>
+            <h1>{{ result.prediction }}</h1>
+            <div class="confidence">
+                <span>{{ result.confidence }}%</span>
+                <div class="meter"><i style="width: {{ result.confidence }}%"></i></div>
+            </div>
+            <dl class="metadata">
+                <div><dt>Processing Time</dt><dd>{{ result.processing_time }}</dd></div>
+                <div><dt>Image</dt><dd>{{ result.image_name }}</dd></div>
+                <div><dt>Model</dt><dd>{{ result.model }}</dd></div>
+            </dl>
+            <a class="button primary" href="{{ url_for('report', result_id=result.result_id) }}">Download PDF Report</a>
+        </div>
+    </div>
+    <section class="features">
+        <div class="section-heading compact">
+            <p class="eyebrow">Feature Summary</p>
+            <h2>Extracted Signals</h2>
+        </div>
+        <div class="feature-list">
+            {% for item in result.feature_summary %}
+            <div class="feature-item">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+        <canvas id="featureChart" height="180" data-features='{{ result.features | tojson }}'></canvas>
+    </section>
+</section>
+{% endblock %}

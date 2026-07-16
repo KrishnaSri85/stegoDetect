@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Upload | Quantum Steganography Detection{% endblock %}
+{% block content %}
+<section class="page-shell">
+    <div class="section-heading">
+        <p class="eyebrow">Image Analysis</p>
+        <h1>Upload Image</h1>
+    </div>
+    {% if error %}
+    <div class="notice error">{{ error }}</div>
+    {% endif %}
+    <form class="upload-card" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" data-upload-form>
+        <label class="drop-zone" for="image-input" data-drop-zone>
+            <input id="image-input" type="file" name="image" accept="image/*" required data-file-input>
+            <span class="drop-title">Drop image here or choose a file</span>
+            <span class="drop-subtitle">PNG, JPG, BMP, WEBP, TIFF up to 8 MB</span>
+            <img alt="Selected image preview" class="preview" data-preview hidden>
+        </label>
+        <div class="upload-actions">
+            <button class="button primary" type="submit" data-submit>Analyze Image</button>
+            <span class="loader" data-loader hidden></span>
+        </div>
+    </form>
+</section>
+{% endblock %}
