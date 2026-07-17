@@ -10,7 +10,9 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.utils import secure_filename
 
 from config import Config
+
 from detection.report import generate_detection_report
+
 from utils.helper import (
     allowed_file,
     extract_features_safe,

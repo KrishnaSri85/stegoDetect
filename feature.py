@@ -22,9 +22,17 @@ from qiskit.primitives import StatevectorSampler
 clean_df = pd.read_csv('original_features.csv')
 stego_df = pd.read_csv('stego_features.csv')
 
-# Filter out non-numeric columns
-X_clean = clean_df.select_dtypes(include=['number'])
-X_stego = stego_df.select_dtypes(include=['number'])
+# Use only the live steganalysis features — never include Label (target leakage).
+FEATURE_COLUMNS = [
+    "Mean",
+    "Variance",
+    "Entropy",
+    "LSB Ratio",
+    "Horizontal Difference",
+    "Vertical Difference",
+]
+X_clean = clean_df[FEATURE_COLUMNS]
+X_stego = stego_df[FEATURE_COLUMNS]
 
 # Create explicit target labels (0 = Clean, 1 = Stego)
 y_clean = np.zeros(X_clean.shape[0])
@@ -148,7 +156,7 @@ preprocessing_pipeline = {
     'scaler': scaler,
     'pca': pca,
     'angle_scaler': angle_scaler,
-    'feature_columns': list(X_clean.columns)  # needed to rebuild input rows in the right order
+    'feature_columns': list(FEATURE_COLUMNS),  # order must match live Flask feature mapping
 }
 joblib.dump(preprocessing_pipeline, pipeline_filename)
 print(f"[Saved] Preprocessing pipeline saved to '{pipeline_filename}'")
